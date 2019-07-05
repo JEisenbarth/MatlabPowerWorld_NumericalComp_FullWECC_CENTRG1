@@ -223,8 +223,7 @@ for k=1:size(list,1)
         %         data_modified(k,x)=udread(filenamechf,[]);
         
         x
-        
-        
+              
         filenamemat=['D:\Users\JEisenbarth\Desktop\PowerWorld Files\CENTRG1 PlayIn Data\FinalTheta_CENTRG1_PowerWorld_NoNoiseSingleParam_MaxDiff1Percent.mat']
 %         save(filenamemat,'final_theta','resnorm','output','list')
         
