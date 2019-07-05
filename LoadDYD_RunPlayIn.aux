@@ -1,0 +1,26 @@
+SCRIPT LoadDYD_RunPlayIn
+{
+//SetCurrentDirectory
+//SetCurrentDirectory("C:\MatlabPowerWorld_NumericalComp_FullWECC_CENTRG1\");
+//Load Case
+OpenCase("CENTRG1_PlayIn.pwb",PWB);
+
+//Enter Edit Mode
+EnterMode(EDIT);
+
+//Load Dyd File
+TSLoadGE("CENTRG1_PlayIn.dyd", NO, YES);
+
+//Load Aux File with PlayInData
+LoadAux("PlayInData.aux");
+
+//Enter Run Mode
+EnterMode(RUN);
+
+//Solve Dynamic Simulation
+TSSolveAll;
+
+//Get Results from Dynamic Simulation
+TSGetResults("data.csv", SEPARATE,[My Transient Contingency],["Plot 'CENTRG1_EventData'"], 0, 20);
+}
+
