@@ -105,11 +105,11 @@ index=struct('genrou',index_genrou,'exac8b',index_exac8b,'pss2a',index_pss2a);
 
 clear index_genrou index_exac8b index_oel1 index_pss2a index_hygovr
 
-list=[ones(length(index.genrou),1),[1:length(index.genrou)]',ones(length(index.genrou),1)*1;...
-    2*ones(length(index.exac8b),1),[1:length(index.exac8b)]',ones(length(index.exac8b),1)*1;...
-    3*ones(length(index.pss2a),1),[1:length(index.pss2a)]',ones(length(index.pss2a),1)*1;];
+% list=[ones(length(index.genrou),1),[1:length(index.genrou)]',ones(length(index.genrou),1)*1;...
+%     2*ones(length(index.exac8b),1),[1:length(index.exac8b)]',ones(length(index.exac8b),1)*1;...
+%     3*ones(length(index.pss2a),1),[1:length(index.pss2a)]',ones(length(index.pss2a),1)*1;];
 
-% list=1;
+list=1;
 for k=1:size(list,1)
     numericalsims=1;
     for x=1:numericalsims
@@ -159,13 +159,13 @@ for k=1:size(list,1)
         
         %% Setup to Run to Minimize Cost Function
         %Setup Column Vector of Parameter to Adjust
-        %         theta_indicies=[ones(length(index.genrou),1),[1:length(index.genrou)]',ones(length(index.genrou),1)*1;...
-        %             2*ones(length(index.exac8b),1),[1:length(index.exac8b)]',ones(length(index.exac8b),1)*1;...
-        %             3*ones(length(index.pss2a),1),[1:length(index.pss2a)]',ones(length(index.pss2a),1)*1;];
+                theta_indicies=[ones(length(index.genrou),1),[1:length(index.genrou)]',ones(length(index.genrou),1)*1;...
+                    2*ones(length(index.exac8b),1),[1:length(index.exac8b)]',ones(length(index.exac8b),1)*1;...
+                    3*ones(length(index.pss2a),1),[1:length(index.pss2a)]',ones(length(index.pss2a),1)*1;];
         
         %         theta_indicies=[[1,1,1];[1,2,1];[1,3,1];[1,4,1];[1,5,1];[1,6,1];[1,7,1];[1,9,1];[1,10,1];[1,11,1];[1,12,1];[1,13,1];[1,14,1];[1,15,1];[1,16,1];[2,1,1];[2,3,1];[2,6,1];[2,7,1];[2,8,1];[2,9,1];[4,3,1];[4,4,1];[4,7,1];[4,8,1];[4,9,1];[4,10,1];[4,11,1];[4,12,1];[4,13,1];[4,14,1];[4,15,1];[4,16,1];[4,17,1];[4,18,1];[4,19,1];[4,20,1];[4,24,1];[5,1,1];[5,2,1];[5,3,1];[5,4,1];[5,5,1];[5,6,1];[5,12,1];[5,15,1];[5,16,1];[5,19,1];[5,20,1];[5,21,1];[5,22,1];[5,24,1];[5,25,1];[5,26,1];[5,27,1]];
         
-        theta_indicies=list(k,:);
+%         theta_indicies=list(k,:);
         
         %             theta_indicies=[1,4,1;1,5,1];    %1st column is model,2nd column is numerical parameter,3rd column is what residual vector to use 1=P 2=Q 3=P&Q
         %Ex. [1,5,1]->model=genrou, parameter=H, P for
@@ -193,30 +193,32 @@ for k=1:size(list,1)
         PQ_Flag=2;
         
         %                         opts=optimoptions(@lsqnonlin,'TolFun',1e-12,'Display','iter','Diagnostics','off','Tolx',1e-12,'MaxFunEvals',50000,'SpecifyObjectiveGradient',true);
-        opts=optimoptions(@lsqnonlin,'TolFun',1e-12,'Display','iter','Diagnostics','off','Tolx',1e-12,'MaxFunEvals',50000,'DiffMinChange',percentnominal,'SpecifyObjectiveGradient',true);
-        %         opts=optimoptions(@lsqnonlin,'TolFun',1e-12,'Display','iter','Diagnostics','off','Tolx',1e-12,'MaxFunEvals',0,'MaxIterations',0,'SpecifyObjectiveGradient',true);
+%         opts=optimoptions(@lsqnonlin,'TolFun',1e-12,'Display','iter','Diagnostics','off','Tolx',1e-12,'MaxFunEvals',50000,'DiffMinChange',percentnominal,'SpecifyObjectiveGradient',true);
+                opts=optimoptions(@lsqnonlin,'TolFun',1e-12,'Display','iter','Diagnostics','off','Tolx',1e-12,'MaxFunEvals',0,'MaxIterations',0,'SpecifyObjectiveGradient',true);
         
         %         residual = @(theta) residual_PowerWorld(theta,theta_indicies,index,datacsv,filenamedyd,genrou_original,exac8b_original,pss2a_original,filenamechf,PQ_Flag,SimAuto);
         residual = @(theta) residual_Jacobian_PowerWorld(theta,theta_indicies,index,datacsv,filenamedyd,genrou_original,exac8b_original,pss2a_original,PQ_Flag,SimAuto,percentnominal);
         %         [final_theta(k,x),resnorm(k,x),residual,exitflag,output(k,x),lambda,Jacobian] = lsqnonlin(residual,theta,[],[],opts);
-        if (list(k,:)==[1,2,1])
-            ub=Inf(1);
-            lb=.016;
-        elseif (list(k,:)==[3,3,1])
-            lb=.016;
-            ub=Inf(1);
-            
-        elseif (list(k,:)==[1,11,1])
-            lb=-1*Inf(1);
-            ub=.192;
-        else
-            lb=-1*Inf(1);
-            ub=Inf(1);
-        end
-        %             lb=(-1* Inf(length(theta),1));
-        %         lb([1:4,16,19,21,25,32:36,45,47,52])=1/60;
-        %         [final_theta(k,x),resnorm(k,x),residual,exitflag,output(k,x),lambda,Jacobian] = lsqnonlin(residual,theta,[],[],opts);
-        [final_theta(k,x),resnorm(k,x),residual,exitflag,output(k,x),lambda,Jacobian] = lsqnonlin(residual,theta,lb,[],opts);
+
+        
+        %         if (list(k,:)==[1,2,1])
+%             ub=Inf(1);
+%             lb=.016;
+%         elseif (list(k,:)==[3,3,1])
+%             lb=.016;
+%             ub=Inf(1);
+%             
+%         elseif (list(k,:)==[1,11,1])
+%             lb=-1*Inf(1);
+%             ub=.192;
+%         else
+%             lb=-1*Inf(1);
+%             ub=Inf(1);
+%         end
+                    lb=(-1* Inf(length(theta),1));
+                lb([1:4,16,19,21,25,32:36,45,47,52])=0.016;
+                [final_theta(:,x),resnorm(:,x),residual,exitflag,output(:,x),lambda,Jacobian] = lsqnonlin(residual,theta,lb,[],opts);
+%         [final_theta(k,x),resnorm(k,x),residual,exitflag,output(k,x),lambda,Jacobian] = lsqnonlin(residual,theta,lb,[],opts);
         
         
         %         %%Load channel file from simulation.
@@ -224,8 +226,9 @@ for k=1:size(list,1)
         
         x
               
-        filenamemat=['D:\Users\JEisenbarth\Desktop\PowerWorld Files\CENTRG1 PlayIn Data\FinalTheta_CENTRG1_PowerWorld_NoNoiseSingleParam_MaxDiff1Percent.mat']
-%         save(filenamemat,'final_theta','resnorm','output','list')
+        filenamemat=['D:\Users\JEisenbarth\Desktop\PowerWorld Files\CENTRG1 PlayIn Data\CENTRG1_PowerWorld_FullJacobianTest.mat']
+        Jacobian=full(Jacobian);
+        save(filenamemat,'final_theta','resnorm','output','list','Jacobian')
         
         
         %         filenamemoddata=['D:\Users\JEisenbarth\Desktop\Full WECC Filtered Noise Parameter Testing\Full Numberical Comp for Noise and No Noise\FinalThetaNoNoise_ModifiedData.mat']
