@@ -192,9 +192,8 @@ for k=1:size(list,1)
         filenamedyd='C:\MatlabPowerWorld_NumericalComp_FullWECC_CENTRG1\CENTRG1_PlayIn.dyd';
         PQ_Flag=2;
         
-        %                         opts=optimoptions(@lsqnonlin,'TolFun',1e-12,'Display','iter','Diagnostics','off','Tolx',1e-12,'MaxFunEvals',50000,'SpecifyObjectiveGradient',true);
-%         opts=optimoptions(@lsqnonlin,'TolFun',1e-12,'Display','iter','Diagnostics','off','Tolx',1e-12,'MaxFunEvals',50000,'DiffMinChange',percentnominal,'SpecifyObjectiveGradient',true);
-                opts=optimoptions(@lsqnonlin,'TolFun',1e-12,'Display','iter','Diagnostics','off','Tolx',1e-12,'MaxFunEvals',0,'MaxIterations',0,'SpecifyObjectiveGradient',true);
+                                opts=optimoptions(@lsqnonlin,'TolFun',1e-12,'Display','iter','Diagnostics','off','Tolx',1e-12,'MaxFunEvals',50000,'SpecifyObjectiveGradient',true);
+%                 opts=optimoptions(@lsqnonlin,'TolFun',1e-12,'Display','iter','Diagnostics','off','Tolx',1e-12,'MaxFunEvals',0,'MaxIterations',0,'SpecifyObjectiveGradient',true);
         
         %         residual = @(theta) residual_PowerWorld(theta,theta_indicies,index,datacsv,filenamedyd,genrou_original,exac8b_original,pss2a_original,filenamechf,PQ_Flag,SimAuto);
         residual = @(theta) residual_Jacobian_PowerWorld(theta,theta_indicies,index,datacsv,filenamedyd,genrou_original,exac8b_original,pss2a_original,PQ_Flag,SimAuto,percentnominal);
@@ -216,7 +215,7 @@ for k=1:size(list,1)
 %             ub=Inf(1);
 %         end
                     lb=(-1* Inf(length(theta),1));
-                lb([1:4,16,19,21,25,32:36,45,47,52])=0.016;
+                lb([1:4,16,19,21,25,32:37,45,47,52])=0.016;
                 [final_theta(:,x),resnorm(:,x),residual,exitflag,output(:,x),lambda,Jacobian] = lsqnonlin(residual,theta,lb,[],opts);
 %         [final_theta(k,x),resnorm(k,x),residual,exitflag,output(k,x),lambda,Jacobian] = lsqnonlin(residual,theta,lb,[],opts);
         
@@ -226,7 +225,8 @@ for k=1:size(list,1)
         
         x
               
-        filenamemat=['D:\Users\JEisenbarth\Desktop\PowerWorld Files\CENTRG1 PlayIn Data\CENTRG1_PowerWorld_FullJacobianTest.mat']
+        filenamemat=['D:\Users\JEisenbarth\Desktop\PowerWorld Files\CENTRG1 PlayIn Data\CENTRG1_PowerWorld_FullParameterFitting.mat']
+%         filenamemat=['D:\Users\JEisenbarth\Desktop\PowerWorld Files\CENTRG1 Parameter Testing\Jacobian Test for Full Parameters\CENTRG1_PowerWorld_FullJacobianTest.mat']
         Jacobian=full(Jacobian);
         save(filenamemat,'final_theta','resnorm','output','list','Jacobian')
         
