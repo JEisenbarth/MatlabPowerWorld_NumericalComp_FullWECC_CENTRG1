@@ -109,9 +109,19 @@ clear index_genrou index_exac8b index_oel1 index_pss2a index_hygovr
 %     2*ones(length(index.exac8b),1),[1:length(index.exac8b)]',ones(length(index.exac8b),1)*1;...
 %     3*ones(length(index.pss2a),1),[1:length(index.pss2a)]',ones(length(index.pss2a),1)*1;];
 
-list=1;
+list=[1,1,1;
+    1,5,1;
+    1,13,1;
+    2,2,1;
+    2,5,1;
+    2,10,1;
+    3,13,1;
+    3,14,1;]
+    
+    
+% list=1;
 for k=1:size(list,1)
-    numericalsims=1;
+    numericalsims=100;
     for x=1:numericalsims
         %% Write Data Aux File for Centralia Event PlayIn
         datacsv=load(['D:\Users\JEisenbarth\Desktop\PowerWorld Files\FULL WECC and CENTG1 PlayIn\CJ_EventData.Mat']);
@@ -120,52 +130,70 @@ for k=1:size(list,1)
         datacsv.Data=TrimEventData(datacsv.Data,texpected);
         ndx1=PWFind(datacsv,'Bus ',' 47741 ','V pu');
         ndx2=PWFind(datacsv,'Bus ',' 47741 ','V angle No shift');
+        ndx3=PWFind(datacsv,'Bus ',' 47741 ','Frequency in PU');
         
         t1=datacsv.Data(:,1);
         v1=datacsv.Data(:,ndx1);
-        finitial=1;     %PU
-        f1=CalcFfromVang(datacsv.Data(:,ndx2),datacsv.Data(:,1),finitial);
+        vang1=datacsv.Data(:,ndx2);
+        finitial=datacsv.Data(1,ndx3);     %PU
+        forig=CalcFfromVang(datacsv.Data(:,ndx2),datacsv.Data(:,1),finitial)';
         
+        %%ADD Filtered Measurement Noise to V and F
+        vmeasnoise=.001*randn(length(v1),1);
+        vangmeasnoise=.25*randn(length(vang1),1);
         
-        %         %%ADD Filtered Measurement Noise to V and F
-        %         vmeasnoise=.01*randn(length(v1),1);
-        %         fmeasnoise=.01*randn(length(f1),1);
-        %
-        %         [b,a]=butter(3,.5);
-        %
-        %         vmeasnoise=filter(b,a,vmeasnoise);
-        %         fmeasnoise=filter(b,a,fmeasnoise);
+        [b,a]=butter(3,.05);
         
-        %                 figure
-        %                 subplot(2,1,1)
-        %                 plot(t1,(v1+vmeasnoise),t1,v1)
-        %                 legend('Added Measurement Noise','Original')
-        %                 title('CENTR G1 Event 3: Voltage')
-        %                 grid
-        %                 xlim([0,90])
-        %
-        %                 subplot(2,1,2)
-        %                         plot(t1,(f1+fmeasnoise),t1,f1)
-        %                 legend('Added Measurement Noise','Original')
-        %                 title('CENTR G1 Event 3: Frequency')
-        %                 grid
-        %                 xlim([0,90])
-        %         v1=v1+vmeasnoise;
-        %         f1=f1+fmeasnoise;
+        vmeasnoise=filter(b,a,vmeasnoise);
+        vangmeasnoise=filter(b,a,vangmeasnoise);
         
+        v1=v1+vmeasnoise;
+        vang1=vang1+vangmeasnoise;
+        
+        f1=CalcFfromVang(vang1,datacsv.Data(:,1),finitial)';
+
         filename=['C:\MatlabPowerWorld_NumericalComp_FullWECC_CENTRG1\PlayInData.aux'];
         
         WritePlayInAux(filename,t1,v1,f1)
+        data_PlayInAux(k,x).t1=t1;
+        data_PlayInAux(k,x).v1=v1;
+        data_PlayInAux(k,x).f1=f1;
+        data_PlayInAux(k,x).vang1=vang1;
+        
+        
+%         figure
+%         subplot(3,1,1)
+%         plot(t1,(v1+vmeasnoise),t1,v1)
+%         legend('Added Measurement Noise','Original')
+%         title('CENTR G1 Event 3: Voltage')
+%         grid
+%         xlim([0,20])
+%         
+%         subplot(3,1,2)
+%         plot(t1,vang1,t1,(vang1-vangmeasnoise))
+%         legend('Added Measurement Noise','Original')
+%         title('CENTR G1 Event 3: Frequency')
+%         grid
+%         xlim([0,20])
+%         
+%         subplot(3,1,3)
+%         plot(t1,(f1),t1,forig)
+% 
+%         legend('Added Measurement Noise','Original')
+%         title('CENTR G1 Event 3: Frequency')
+%         grid
+%         xlim([0,20])
+
         
         %% Setup to Run to Minimize Cost Function
         %Setup Column Vector of Parameter to Adjust
-                theta_indicies=[ones(length(index.genrou),1),[1:length(index.genrou)]',ones(length(index.genrou),1)*1;...
-                    2*ones(length(index.exac8b),1),[1:length(index.exac8b)]',ones(length(index.exac8b),1)*1;...
-                    3*ones(length(index.pss2a),1),[1:length(index.pss2a)]',ones(length(index.pss2a),1)*1;];
+        %         theta_indicies=[ones(length(index.genrou),1),[1:length(index.genrou)]',ones(length(index.genrou),1)*1;...
+        %             2*ones(length(index.exac8b),1),[1:length(index.exac8b)]',ones(length(index.exac8b),1)*1;...
+        %             3*ones(length(index.pss2a),1),[1:length(index.pss2a)]',ones(length(index.pss2a),1)*1;];
         
         %         theta_indicies=[[1,1,1];[1,2,1];[1,3,1];[1,4,1];[1,5,1];[1,6,1];[1,7,1];[1,9,1];[1,10,1];[1,11,1];[1,12,1];[1,13,1];[1,14,1];[1,15,1];[1,16,1];[2,1,1];[2,3,1];[2,6,1];[2,7,1];[2,8,1];[2,9,1];[4,3,1];[4,4,1];[4,7,1];[4,8,1];[4,9,1];[4,10,1];[4,11,1];[4,12,1];[4,13,1];[4,14,1];[4,15,1];[4,16,1];[4,17,1];[4,18,1];[4,19,1];[4,20,1];[4,24,1];[5,1,1];[5,2,1];[5,3,1];[5,4,1];[5,5,1];[5,6,1];[5,12,1];[5,15,1];[5,16,1];[5,19,1];[5,20,1];[5,21,1];[5,22,1];[5,24,1];[5,25,1];[5,26,1];[5,27,1]];
         
-%         theta_indicies=list(k,:);
+        theta_indicies=list(k,:);
         
         %             theta_indicies=[1,4,1;1,5,1];    %1st column is model,2nd column is numerical parameter,3rd column is what residual vector to use 1=P 2=Q 3=P&Q
         %Ex. [1,5,1]->model=genrou, parameter=H, P for
@@ -192,32 +220,38 @@ for k=1:size(list,1)
         filenamedyd='C:\MatlabPowerWorld_NumericalComp_FullWECC_CENTRG1\CENTRG1_PlayIn.dyd';
         PQ_Flag=2;
         
-                                opts=optimoptions(@lsqnonlin,'TolFun',1e-12,'Display','iter','Diagnostics','off','Tolx',1e-12,'MaxFunEvals',50000,'SpecifyObjectiveGradient',true);
-%                 opts=optimoptions(@lsqnonlin,'TolFun',1e-12,'Display','iter','Diagnostics','off','Tolx',1e-12,'MaxFunEvals',0,'MaxIterations',0,'SpecifyObjectiveGradient',true);
+    
+        %% Run Simulation w Original theta in model
+        [data_orig(k,x)] = PowerWorld_WriteDYD_Run(filenamedyd,genrou_original,exac8b_original,pss2a_original,SimAuto);
+
+        
+        
+        
+        %                         opts=optimoptions(@lsqnonlin,'TolFun',1e-12,'Display','iter','Diagnostics','off','Tolx',1e-12,'MaxFunEvals',50000,'SpecifyObjectiveGradient',true);
+        opts=optimoptions(@lsqnonlin,'TolFun',1e-12,'Display','iter','Diagnostics','off','Tolx',1e-12,'MaxFunEvals',50000,'DiffMinChange',percentnominal,'SpecifyObjectiveGradient',true);
+        %         opts=optimoptions(@lsqnonlin,'TolFun',1e-12,'Display','iter','Diagnostics','off','Tolx',1e-12,'MaxFunEvals',0,'MaxIterations',0,'SpecifyObjectiveGradient',true);
         
         %         residual = @(theta) residual_PowerWorld(theta,theta_indicies,index,datacsv,filenamedyd,genrou_original,exac8b_original,pss2a_original,filenamechf,PQ_Flag,SimAuto);
         residual = @(theta) residual_Jacobian_PowerWorld(theta,theta_indicies,index,datacsv,filenamedyd,genrou_original,exac8b_original,pss2a_original,PQ_Flag,SimAuto,percentnominal);
         %         [final_theta(k,x),resnorm(k,x),residual,exitflag,output(k,x),lambda,Jacobian] = lsqnonlin(residual,theta,[],[],opts);
-
-        
-        %         if (list(k,:)==[1,2,1])
-%             ub=Inf(1);
-%             lb=.016;
-%         elseif (list(k,:)==[3,3,1])
-%             lb=.016;
-%             ub=Inf(1);
-%             
+        if (list(k,:)==[1,2,1])
+            ub=Inf(1);
+            lb=.016;
+        elseif (list(k,:)==[3,3,1])
+            lb=.016;
+            ub=Inf(1);
+            
 %         elseif (list(k,:)==[1,11,1])
 %             lb=-1*Inf(1);
 %             ub=.192;
-%         else
-%             lb=-1*Inf(1);
-%             ub=Inf(1);
-%         end
-                    lb=(-1* Inf(length(theta),1));
-                lb([1:4,16,19,21,25,32:37,45,47,52])=0.016;
-                [final_theta(:,x),resnorm(:,x),residual,exitflag,output(:,x),lambda,Jacobian] = lsqnonlin(residual,theta,lb,[],opts);
-%         [final_theta(k,x),resnorm(k,x),residual,exitflag,output(k,x),lambda,Jacobian] = lsqnonlin(residual,theta,lb,[],opts);
+        else
+            lb=-1*Inf(1);
+            ub=Inf(1);
+        end
+        %             lb=(-1* Inf(length(theta),1));
+        %         lb([1:4,16,19,21,25,32:36,45,47,52])=1/60;
+        %         [final_theta(k,x),resnorm(k,x),residual,exitflag,output(k,x),lambda,Jacobian] = lsqnonlin(residual,theta,[],[],opts);
+        [final_theta(k,x),resnorm(k,x),residual,exitflag,output(k,x),lambda,Jacobian] = lsqnonlin(residual,theta,lb,[],opts);
         
         
         %         %%Load channel file from simulation.
@@ -225,21 +259,36 @@ for k=1:size(list,1)
         
         x
               
-        filenamemat=['D:\Users\JEisenbarth\Desktop\PowerWorld Files\CENTRG1 PlayIn Data\CENTRG1_PowerWorld_FullParameterFitting.mat']
-%         filenamemat=['D:\Users\JEisenbarth\Desktop\PowerWorld Files\CENTRG1 Parameter Testing\Jacobian Test for Full Parameters\CENTRG1_PowerWorld_FullJacobianTest.mat']
-        Jacobian=full(Jacobian);
-        save(filenamemat,'final_theta','resnorm','output','list','Jacobian')
+        filenamemat=['D:\Users\JEisenbarth\Desktop\PowerWorld Files\CENTRG1 Parameter Testing\Single Parameter Test\FinalTheta_CENTRG1_PowerWorld_WithVFNoiseSingleParam.mat']
+        %% Put thetas into model
+        for m=1:size(theta_indicies,1)
+            if theta_indicies(m,1)==1
+                genrou(index.genrou(theta_indicies(m,2)))=final_theta(k,m);
+            elseif theta_indicies(m,1)==2
+                exac8b(index.exac8b(theta_indicies(m,2)))=final_theta(k,m);
+            elseif theta_indicies(m,1)==3
+                pss2a(index.pss2a(theta_indicies(m,2)))=final_theta(k,m);
+            end
+        end
+        %% Run Simulation w final theta in model
+        [data(k,x)] = PowerWorld_WriteDYD_Run(filenamedyd,genrou,exac8b,pss2a,SimAuto);
+        %% Set Model as Original
+        genrou=genrou_original;
+        exac8b=exac8b_original;
+        pss2a=pss2a_original;
         
-        
+%         save(filenamemat,'final_theta','resnorm','output','list','data','data_PlayInAux','data_orig')
+                
         %         filenamemoddata=['D:\Users\JEisenbarth\Desktop\Full WECC Filtered Noise Parameter Testing\Full Numberical Comp for Noise and No Noise\FinalThetaNoNoise_ModifiedData.mat']
         %         filenamemoddata=['D:\Users\JEisenbarth\Desktop\Full WECC Filtered Noise Parameter Testing\Full Numberical Comp for Noise and No Noise\FinalThetaNoise',num2str(x),'_ModifiedData.mat']
         %         filenamemoddata=['D:\Users\JEisenbarth\Desktop\Full WECC Filtered Noise Parameter Testing\Sensitivity Test for 109 cases\singleparam_',num2str(k),'_ModifiedData.mat']
         
-        %         save(filenamemoddata,'data_modified')
+%                 save(filenamemoddata,'data_modified')
         %         clear final_theta
+    toc
     end
     
-    toc
+    
 end
 
 % %% Plots of Real Power and Reactive Power
